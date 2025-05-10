@@ -42,6 +42,7 @@ onBeforeUnmount(() => {
 const props = defineProps({
     snippets: Array,
     folders: Array,
+    category: Object,
 });
 
 const form = useForm({});
@@ -71,11 +72,6 @@ const addToFolder = (snippetId, folderId) => {
         onSuccess: () => {
             isFolderDropdownOpen.value = null;
             isDropdownOpen.value = null;
-
-            form.get(route('snippets.index'), {}, {
-                preserveScroll: true,
-                preserveState: true,
-            });
         },
     });
 };
@@ -84,8 +80,9 @@ const addToFolder = (snippetId, folderId) => {
 </script>
 <template>
 
-    <Head title="All Snippets" />
-    <h1 class="text-2xl font-bold">All Snippets</h1>
+    <Head :title="`Snippets in ${category.name}`" />
+    <h1 class="text-2xl font-bold mb-4">Snippets in "{{ category.name }}"</h1>
+
 
     <div class="relative w-64 mt-6">
         <i class="ri-search-line absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
@@ -126,7 +123,7 @@ const addToFolder = (snippetId, folderId) => {
                                     <span v-else>Add to Favorites</span>
                                 </li>
 
-                               <li class="relative">
+                                <li class="relative">
                                     <div @click.prevent.stop="toggleFolderDropdown(snippet.id)"
                                         class="p-2 text-xs flex items-center justify-between gap-2 rounded-xl hover:bg-gray-200 cursor-pointer">
                                         <div class="flex items-center gap-2">
@@ -143,7 +140,7 @@ const addToFolder = (snippetId, folderId) => {
                                                 :class="{'bg-blue-100': snippet.categories.some(c => c.id === folder.id)}"
                                                 class="p-2 text-xs flex items-center gap-2 rounded-xl hover:bg-gray-200 cursor-pointer">
                                                 <i class="ri-folder-line"></i> {{ folder.name }}
-                                                <i v-if="snippet.categories.some(c => c.id === folder.id)" class="ri-check-line text-green-500 ml-auto"></i> <!-- Marker for folder assignment -->
+                                                <i v-if="snippet.categories.some(c => c.id === folder.id)" class="ri-check-line text-green-500 ml-auto"></i>
                                             </li>
                                             <li v-if="folders.length === 0" class="p-2 text-xs text-gray-500 italic">
                                                 No folders available
@@ -151,7 +148,6 @@ const addToFolder = (snippetId, folderId) => {
                                         </ul>
                                     </div>
                                 </li>
-
 
                                 <li @click.prevent.stop="toggleDeletion(snippet)"
                                     class="p-2 text-xs flex items-center gap-2 rounded-xl hover:bg-gray-200 cursor-pointer text-red-500">
@@ -183,3 +179,5 @@ const addToFolder = (snippetId, folderId) => {
         </div>
     </div>
 </template>
+
+

@@ -19,6 +19,10 @@ class Snippet extends Model
         'category_id',
     ];
 
+    protected $casts = [
+        'is_favorite' => 'boolean'
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -29,9 +33,9 @@ class Snippet extends Model
         return $this->belongsToMany(Tag::class, 'snippet_tags')->withTimestamps();
     }
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsTo(Category::class, 'category_id');
+        return $this->belongsToMany(Category::class, 'snippet_category');
     }
 
 }

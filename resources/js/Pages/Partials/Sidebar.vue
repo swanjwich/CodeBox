@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, onBeforeUnmount } from 'vue';
 import axios from 'axios';
 
 const props = defineProps(['isExpanded']);
@@ -17,6 +17,21 @@ const toggleDropdown = () => {
     isDropdownOpen.value = !isDropdownOpen.value;
 };
 
+const handleClickOutside = (event) => {
+    const dropdown = document.querySelectorAll('.profile');
+    let clickedInside = false;
+
+    dropdown.forEach(el => {
+        if (el.contains(event.target)) {
+            clickedInside = true;
+        }
+    });
+
+    if (!clickedInside) {
+        isDropdownOpen.value = null;
+    }
+};
+
 const newFolder = ref(null);
 const addFolder = () => {
     if (!newFolder.value) {
@@ -24,19 +39,44 @@ const addFolder = () => {
     }
 };
 
-const saveFolder = () => {
-    if (newFolder.value && newFolder.value.name.trim() !== "") {
-        axios.post(route('category.store'), {
-            name: newFolder.value.name
-        })
-        .then(response => {
-            folders.value.push(newFolder.value.name);
-            newFolder.value = null;
-        })
-        .catch(error => {
-            console.error('There was an error saving the category!', error);
-        });
+onMounted( async() =>{
+    try{
+        const response = await axios.get(route('category.index'));
+        folders.value = response.data.folders;
+    } catch (error) {
+        console.error('Error loading folders:', error);
     }
+
+    document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
+
+const saveFolder = async () => {
+    if (!newFolder.value || newFolder.value.name.trim() === "") return;
+
+    try {
+        const response = await axios.post(route('category.store'), {
+            name: newFolder.value.name
+        }, {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        folders.value.push({
+            id: response.data.folder.id,
+            name: response.data.folder.name
+        });
+
+        newFolder.value = null;
+    } catch (error) {
+        console.error('Error saving folder:', error.response?.data?.message || error.message);
+    }
+
 };
 
 
@@ -121,7 +161,7 @@ const saveFolder = () => {
             </li>
 
             <transition name="fade">
-                <ul v-if="showFolders" class="space-y-2 overflow-y-auto"
+                <ul v-if="showFolders" class="custom-scrollbar space-y-2 max-h-60 overflow-y-auto"
                     :class="isExpanded ? 'ml-6' : 'flex flex-col items-center'">
                     <li v-if="newFolder" class="flex items-center py-1">
                         <i class="ri-folder-fill"></i>
@@ -129,14 +169,17 @@ const saveFolder = () => {
                             class=" w-30 ml-3 border-b border-gray-500 outline-none text-sm "
                             placeholder="Enter folder name..." autofocus>
                     </li>
-                    <li v-for="folder in folders" :key="folder"
-                        :class="isExpanded ? 'justify-start px-3' : 'justify-center'"
+                    <li v-for="folder in folders" :key="folder.id"
+                        :class="isExpanded ? 'justify-start px-3' : 'justify-center',
+                        $page.url.includes(`/category/${folder.id}`) ? 'bg-gray-300 text-[#091C2A]' : 'text-gray-500'"
                         class="group relative flex items-center cursor-pointer rounded-lg py-1 hover:bg-gray-300 transition-all duration-300">
-                        <i class="ri-folder-fill"></i>
-                        <span v-if="isExpanded" class="ml-3 text-base">{{ folder.name }}</span>
-                        <span v-else class="tooltip group-hover:block">
-                            {{ folder.name }}
-                        </span>
+                        <Link :href="route('category.snippets', folder.id)" class="flex items-center w-full">
+                            <i class="ri-folder-fill"></i>
+                            <span v-if="isExpanded" class="ml-3 text-base">{{ folder.name }}</span>
+                            <span v-else class="tooltip group-hover:block">
+                                {{ folder.name }}
+                            </span>
+                        </Link>
                     </li>
 
                 </ul>
@@ -146,7 +189,7 @@ const saveFolder = () => {
 
         <div :class="isExpanded ? 'justify-start' : 'justify-center'" class="mt-auto flex relative">
             <div @click="toggleDropdown" :class="isExpanded ? 'justify-start' : 'justify-center'"
-                class="group h-10 relative flex cursor-pointer rounded-lg">
+                class="profile group h-10 relative flex cursor-pointer rounded-lg">
                 <img src="/storage/app/public/images/profile.jpg" alt="Profile" class="rounded-full object-cover" />
                 <span v-if="isExpanded" class="ml-3 text-sm font-bold flex items-center truncate">{{
                     $page.props.auth.user.name }}</span>

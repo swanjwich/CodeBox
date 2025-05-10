@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\SnippetsController;
+use App\Models\Category;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -22,8 +23,11 @@ Route::middleware('auth')->group( function() {
     Route::patch('/snippets/{id}/restore', [SnippetsController::class, 'restore'])->name('snippets.restore');
     Route::delete('/snippets/{id}/destroy', [SnippetsController::class, 'destroy'])->name('snippets.destroy');
     Route::patch('/snippets/{snippet}', [SnippetsController::class, 'update'])->name('snippets.update');
+    Route::post('/snippets/{id}/add-to-category',[SnippetsController::class, 'addToCategory'])->name('snippets.add-to-category');
 
-    Route::post('/category', [CategoryController::class, 'store'])->name('category.store');
+    Route::get('/category', [CategoryController::class, 'index'])->name('category.index');
+    Route::post('/category', action: [CategoryController::class, 'store'])->name('category.store');
+    Route::get('/category/{category}/snippets', [CategoryController::class, 'show'])->name('category.snippets');
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });

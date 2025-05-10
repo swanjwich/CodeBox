@@ -14,8 +14,16 @@ class SnippetsController extends Controller
 {
     public function index()
     {
-        $snippets = Snippet::with(['tags', 'category'])->latest()->get();
-        return Inertia::render('AllSnippets', ['snippets' => $snippets]);
+        $snippets = Snippet::with(['tags', 'categories'])
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->get();
+        $folders = Category::where('user_id', Auth::id())->latest()->get();
+
+        return Inertia::render('AllSnippets', [
+            'snippets' => $snippets,
+            'folders' => $folders,
+        ]);
     }
 
     public function favorites()
@@ -113,6 +121,7 @@ class SnippetsController extends Controller
 
     public function toggleFavorite($id)
     {
+        $isFavorite = 0;
         $snippet = Snippet::findOrFail($id);
         $snippet->is_favorite = !$snippet->is_favorite;
         $snippet->save();
@@ -154,6 +163,35 @@ class SnippetsController extends Controller
             'message' => 'Snippet has been deleted permenantly.',
             'type' => 'info',
         ]);
+    }
+
+    public function addToCategory($id, Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:categories,id'
+        ]);
+
+        $snippet = Snippet::findOrFail($id);
+        $category = Category::findOrFail($request->category_id);
+
+        if($snippet->categories()->where('category_id', $request->category_id)->exists())
+        {
+            $snippet->categories()->detach($request->category_id);
+            return back()->with([
+                'message' => "Snippet removed from folder: {$category->name}.",
+                'type' => 'info'
+            ]);
+        }
+        else
+        {
+            $snippet->categories()->syncWithoutDetaching([$request->category_id]);
+
+            return back()->with([
+                'message' => "Snippet added to folder: {$category->name}.",
+                'type' => 'success'
+            ]);
+        }
+
     }
 
 }

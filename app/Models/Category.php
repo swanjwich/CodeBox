@@ -10,11 +10,16 @@ class Category extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
+        'user_id',
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function snippets()
     {
-        return $this->hasMany(Snippet::class);
+        return $this->belongsToMany(Snippet::class, 'snippet_category');
     }
 }

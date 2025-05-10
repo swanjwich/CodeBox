@@ -20,13 +20,8 @@ return new class extends Migration
             $table->string("title", 255)->default("Untitled Snippet");
             $table->string("description", 255)->nullable();
             $table->text("content");
-            $table->foreignId('category_id')
-                ->nullable()
-                ->constrained()
-                ->onUpdate('cascade')
-                ->onDelete('set null');
             $table->enum("visibility", ["public", "private"])->default("private");
-            $table->boolean("is_favorite")->default("false");
+            $table->boolean("is_favorite")->default(0);
             $table->softDeletes();
             $table->timestamps();
         });

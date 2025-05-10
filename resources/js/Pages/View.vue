@@ -70,7 +70,7 @@ const submit = () => {
             <!-- Edit Button -->
             <div class="flex items-center justify-end">
                 <button @click.prevent="toggleEditMode"
-                    class="bg-transparent text-black border-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 transition flex items-center">
+                    class="cursor-pointer bg-transparent text-black border-gray-200 px-4 py-2 rounded-md hover:bg-gray-200 transition flex items-center">
                     <i class="me-2 text-lg text-blue-500"
                         :class="isEditing ? 'ri-edit-box-fill' : 'ri-edit-box-line'"></i>
                     {{ isEditing ? "Editing" : "Edit" }}
@@ -86,7 +86,7 @@ const submit = () => {
 
             <!-- Description -->
             <p v-if="!isEditing && form.description" class="text-gray-600">{{ form.description }}</p>
-            <textarea v-else v-model="form.description"
+            <textarea v-if="isEditing" v-model="form.description"
                 class="border border-gray-300 outline-[#091C2A] p-2 w-full rounded mt-2" rows="2"
                 placeholder="Describe your snippet..."></textarea>
 
@@ -96,7 +96,7 @@ const submit = () => {
                     #{{ tag.name }}
                 </span>
             </div>
-            <input v-else v-model="form.tagsString" placeholder="Tags (comma-separated)"
+            <input v-if="isEditing" v-model="form.tagsString" placeholder="Tags (comma-separated)"
                 class="border border-gray-300 outline-[#091C2A]  p-2 w-full mt-2 rounded text-sm " />
 
             <hr class="mt-5 mb-5 text-gray-500" />
@@ -114,7 +114,7 @@ const submit = () => {
                 </button>
 
                 <button v-if="isEditing" :disabled="form.processing"
-                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
+                    class="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition">
                     Save changes
                 </button>
             </div>
